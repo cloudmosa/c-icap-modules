@@ -709,9 +709,17 @@ int url_check_check_preview(char *preview_data, int preview_data_len,
 	 return CI_MOD_ALLOW204;
      }
 
-     if (uc->httpinf.method == UC_HTTP_CONNECT || uc->httpinf.method == UC_HTTP_OPTIONS) {
+     // NOTE(keiko): only interesting in GET method
+     if (uc->httpinf.method != UC_HTTP_GET) {
           return CI_MOD_ALLOW204;
      }
+
+    // NOTE(keiko): if we're interesting in non-GET method, we should pay attention to the
+    //              following methods. For example, connect may be used to create a tunnel,
+    //              (e.g. explicit http proxy)
+    //  if (uc->httpinf.method == UC_HTTP_CONNECT || uc->httpinf.method == UC_HTTP_OPTIONS) {
+    //       return CI_MOD_ALLOW204;
+    //  }
 
      ci_debug_printf(9, "srv_url_check: URL  method %d\n", uc->httpinf.method);
      ci_debug_printf(9, "srv_url_check: URL  to host %s\n", uc->httpinf.site);
