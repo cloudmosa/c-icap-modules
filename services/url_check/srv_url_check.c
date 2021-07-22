@@ -164,6 +164,8 @@ void profile_release();
 static struct profile *PROFILES = NULL;
 int EARLY_RESPONSES = 1;
 int CONVERT_PERCENT_CODES = 1;
+#define MAX_MANDARIN_LENGTH 512
+char MANDARIN[MAX_MANDARIN_LENGTH];
 
 /*Counters: */
 int UC_CNT_BLOCKED = -1;
@@ -215,6 +217,8 @@ int cfg_profile(const char *directive, const char **argv, void *setdata);
 int cfg_profile_access(const char *directive, const char **argv, void *setdata);
 int cfg_default_action(const char *directive, const char **argv, void *setdata);
 int cfg_convert_percent(const char *directive, const char **argv, void *setdata);
+int cfg_mandarin(const char *directive, const char **argv, void *setdata);
+
 /*Configuration Table .....*/
 static struct ci_conf_entry conf_variables[] = {
 #if defined(HAVE_BDB)
@@ -226,6 +230,7 @@ static struct ci_conf_entry conf_variables[] = {
   {"EarlyResponses", &EARLY_RESPONSES, ci_cfg_onoff, NULL},
   {"DefaultAction", cfg_default_actions, cfg_default_action, NULL},
   {"ConvertPercentCodesTo", NULL, cfg_convert_percent, NULL},
+  {"Mandarin", NULL, cfg_mandarin, NULL},
   {NULL, NULL, NULL, NULL}
 };
 
@@ -712,7 +717,7 @@ static ci_membuf_t *build_error_page(ci_request_t *req)
     char request_url[ 512 ];
     fmt_srv_urlcheck_http_url(req, request_url, 512, NULL);
     char location[ 512 ];
-    snprintf(location, 512, "Location: https://i.puffin.com/%s", request_url);
+    snprintf(location, 512, "Location: %s/%s", MANDARIN, request_url);
     ci_http_response_add_header(req, location);
 
     err_page = ci_txt_template_build_content(req, "srv_url_check", "DENY", srv_urlcheck_format_table);
@@ -1359,6 +1364,19 @@ int cfg_convert_percent(const char *directive, const char **argv, void *setdata)
     else
         return 0;
 
+    return 1;
+}
+
+int cfg_mandarin(const char *directive, const char **argv, void* setdata)
+{
+    ci_debug_printf(2,"[TBD] cfg_mandarin: %s\n", argv[0]);
+
+    if (argv == NULL || argv[0] == NULL)  {
+        snprintf(MANDARIN, MAX_MANDARIN_LENGTH, "https://i.puffin.com");
+        return 1;
+    }
+
+    snprintf(MANDARIN, MAX_MANDARIN_LENGTH, "%s", argv[0]);
     return 1;
 }
 /*****************************************************************/
