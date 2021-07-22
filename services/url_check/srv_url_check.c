@@ -1047,8 +1047,6 @@ void profile_release()
 
 struct profile *profile_check_add(const char *name)
 {
-  ci_debug_printf(2, "[TBD] profile_check_add\n");
-
   struct profile *tmp_profile;
   if((tmp_profile=profile_search(name)))
     return tmp_profile;
@@ -1261,7 +1259,6 @@ int cfg_default_action(const char *directive, const char **argv, void *setdata)
 
 int cfg_profile(const char *directive, const char **argv, void *setdata)
 {
-  ci_debug_printf(5, "[TBD] cfg_profile()\n");
   struct profile *prof;
   const struct url_check_action *action = NULL;
   struct action *act, *actions_list;
@@ -1270,7 +1267,6 @@ int cfg_profile(const char *directive, const char **argv, void *setdata)
   if(!argv[0] || !argv[1] || !argv[2])
     return 0;
 
-  ci_debug_printf(5, "[TBD] cfg_profile %s\n", argv[0]);
   prof = profile_check_add(argv[0]);
 
   if(strcasecmp(argv[1], "DefaultAction") == 0) {
@@ -1716,8 +1712,6 @@ void lt_release_db(struct lookup_db *ldb)
 
 int cfg_load_lt_db(const char *directive, const char **argv, void *setdata)
 {
-  ci_debug_printf(5, "[TBD] cfg_load_lt_db()\n");
-
   struct lookup_db *ldb;
   unsigned int check;
   const char *db_descr = NULL;
