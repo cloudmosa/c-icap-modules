@@ -672,7 +672,13 @@ static ci_membuf_t *build_error_page(ci_request_t *req)
     ci_membuf_t *err_page;
     ci_http_response_create(req, 1, 1); /*Build the responce headers */
 
-    // ci_http_response_add_header(req, "HTTP/1.0 403 Forbidden"); /*Send an 403 Forbidden http responce to web client */
+#if (0)
+    // NOTE(keiko): original implementation of srv_url_check
+    ci_http_response_add_header(req, "HTTP/1.0 403 Forbidden"); /*Send an 403 Forbidden http responce to web client */
+#endif
+
+#if (0)
+    // NOTE(keiko): transparent mode
     ci_http_response_add_header(req, "HTTP/1.0 200 OK");
 
     ci_http_response_add_header(req, "Server: C-ICAP");
@@ -693,6 +699,37 @@ static ci_membuf_t *build_error_page(ci_request_t *req)
     else
         ci_http_response_add_header(req, "Content-Language: en");
     return err_page;
+#endif
+
+#if (1)
+    // NOTE(keiko): redirect mode
+    ci_http_response_add_header(req, "HTTP/1.0 302 OK");
+
+    ci_http_response_add_header(req, "Server: C-ICAP");
+    ci_http_response_add_header(req, "Content-Type: text/html");
+    ci_http_response_add_header(req, "Connection: close");
+
+    char request_url[ 512 ];
+    fmt_srv_urlcheck_http_url(req, request_url, 512, NULL);
+    char location[ 512 ];
+    snprintf(location, 512, "Location: https://i.puffin.com/%s", request_url);
+    ci_http_response_add_header(req, location);
+
+    err_page = ci_txt_template_build_content(req, "srv_url_check", "DENY", srv_urlcheck_format_table);
+    /*Are we sure that the txt_template code does not return a NULL page?
+      Well, yes ...
+    */
+
+    lang = ci_membuf_attr_get(err_page, "lang");
+    if (lang) {
+        snprintf(buf, sizeof(buf), "Content-Language: %s", lang);
+        buf[sizeof(buf)-1] = '\0';
+        ci_http_response_add_header(req, buf);
+    }
+    else
+        ci_http_response_add_header(req, "Content-Language: en");
+    return err_page;
+#endif
 }
 
 static int profile_access(ci_request_t *req, const struct profile *prof);
@@ -961,6 +998,7 @@ const struct profile *profile_select(ci_request_t *req)
   tmp_profile = PROFILES;
   while(tmp_profile) {
       ci_debug_printf(5, "url_check: Will check for profile %s\n", tmp_profile->name);
+      ci_debug_printf(5, "url_check: %p\n", tmp_profile->access_list);
       if (tmp_profile->access_list &&
           (ci_access_entry_match_request(tmp_profile->access_list,
                                          req) == CI_ACCESS_ALLOW)) {
@@ -1009,6 +1047,8 @@ void profile_release()
 
 struct profile *profile_check_add(const char *name)
 {
+  ci_debug_printf(2, "[TBD] profile_check_add\n");
+
   struct profile *tmp_profile;
   if((tmp_profile=profile_search(name)))
     return tmp_profile;
@@ -1221,6 +1261,7 @@ int cfg_default_action(const char *directive, const char **argv, void *setdata)
 
 int cfg_profile(const char *directive, const char **argv, void *setdata)
 {
+  ci_debug_printf(5, "[TBD] cfg_profile()\n");
   struct profile *prof;
   const struct url_check_action *action = NULL;
   struct action *act, *actions_list;
@@ -1229,6 +1270,7 @@ int cfg_profile(const char *directive, const char **argv, void *setdata)
   if(!argv[0] || !argv[1] || !argv[2])
     return 0;
 
+  ci_debug_printf(5, "[TBD] cfg_profile %s\n", argv[0]);
   prof = profile_check_add(argv[0]);
 
   if(strcasecmp(argv[1], "DefaultAction") == 0) {
@@ -1545,6 +1587,7 @@ int lt_lookup_db(struct lookup_db *ldb, struct url_check_http_info *http_info, s
 
   switch(ldb->check) {
   case CHECK_HOST:
+      ci_debug_printf(5, "srv_url_check: Checking url %s ....\n", http_info->site);
       ret = ci_lookup_table_search(lt_db, http_info->site, &vals);
       if (ret) {
           if (subcats)
@@ -1673,6 +1716,8 @@ void lt_release_db(struct lookup_db *ldb)
 
 int cfg_load_lt_db(const char *directive, const char **argv, void *setdata)
 {
+  ci_debug_printf(5, "[TBD] cfg_load_lt_db()\n");
+
   struct lookup_db *ldb;
   unsigned int check;
   const char *db_descr = NULL;
