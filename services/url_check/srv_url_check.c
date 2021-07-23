@@ -165,7 +165,8 @@ static struct profile *PROFILES = NULL;
 int EARLY_RESPONSES = 1;
 int CONVERT_PERCENT_CODES = 1;
 #define MAX_MANDARIN_LENGTH 512
-char MANDARIN[MAX_MANDARIN_LENGTH];
+#define DEFAULT_MANDARIN "https://i.puffin.com"
+char MANDARIN[MAX_MANDARIN_LENGTH] = DEFAULT_MANDARIN;
 
 /*Counters: */
 int UC_CNT_BLOCKED = -1;
@@ -1372,7 +1373,7 @@ int cfg_mandarin(const char *directive, const char **argv, void* setdata)
     ci_debug_printf(2,"[TBD] cfg_mandarin: %s\n", argv[0]);
 
     if (argv == NULL || argv[0] == NULL)  {
-        snprintf(MANDARIN, MAX_MANDARIN_LENGTH, "https://i.puffin.com");
+        snprintf(MANDARIN, MAX_MANDARIN_LENGTH, DEFAULT_MANDARIN); 
         return 1;
     }
 
